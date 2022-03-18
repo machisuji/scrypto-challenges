@@ -11,11 +11,10 @@ pub struct Order {
     pub token: ResourceDef,
     /// Price (in market's currency) the buyer is willing to bid or seller is asking
     pub price: Decimal,
-    /// Vault holding the purchased (or to be sold) tokens
-    pub purse: Vault,
-    /// Vault from which the payment for any purchases or sales will be withdrawn
-    /// (must be in market's currency)
-    pub payment: Vault
+    /// Amount of the purchased (or to be sold) tokens
+    pub purse: Decimal,
+    /// Amount of market currency held by this order for any purchases or sales which can be withdrawn
+    pub payment: Decimal
 }
 
 #[allow(dead_code)]
@@ -24,15 +23,11 @@ impl Order {
         self.token.metadata()["symbol"].clone()
     }
 
-    pub fn currency(&self) -> String {
-        self.payment.resource_def().metadata()["symbol"].clone()
-    }
-
     pub fn is_filled(&self) -> bool {
         if self.buy {
-            self.payment.amount() == 0.into() || self.payment.amount() < self.price
+            self.payment == 0.into() || self.payment < self.price
         } else {
-            self.purse.is_empty()
+            self.purse == 0.into()
         }
     }
 
@@ -84,5 +79,27 @@ impl MarketPrices {
 
     pub fn update(&mut self, asset_symbol: String, price: Decimal) {
         self.asset_prices.insert(asset_symbol, price);
+    }
+}
+
+#[derive(Debug, TypeId, Encode, Decode, Describe)]
+pub struct TokenVaults {
+    vaults: HashMap<Address, Vault>
+}
+
+#[allow(dead_code)]
+impl TokenVaults {
+    pub fn new() -> TokenVaults {
+        TokenVaults { vaults: HashMap::new() }
+    }
+
+    pub fn get(&mut self, asset: &Address) -> &mut Vault {
+        if !self.vaults.contains_key(asset) {
+            let vault = Vault::new(*asset);
+
+            self.vaults.insert(*asset, vault);
+        }
+
+        self.vaults.get_mut(asset).unwrap()
     }
 }

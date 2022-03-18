@@ -9,6 +9,8 @@ blueprint! {
         order_count: i64,
         currency: Address,
         orders: Vec<Order>,
+        // payment_vault: Vault,
+        // purse_vaults: PurseVaults,
         ticket_minter_badge: Vault,
         ticket_nft_def: ResourceDef,
         market_prices: MarketPrices
@@ -268,7 +270,6 @@ blueprint! {
             let kind = if buy { "Bid" } else { "Ask" };
             let store = if buy { "Bought" } else { "For sale" };
 
-            info!(" \\----------------------------------------------------/");
             info!("");
             info!(" /'''''''''''''''''' {:>5} {:>4} ORDERS '''''''''''''''''\\", self.base_currency(), title);
             info!(" +------------------------------------------------------+");
